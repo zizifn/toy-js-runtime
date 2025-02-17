@@ -50,7 +50,6 @@ static const JSCFunctionListEntry js_test_funcs[] = {
     JS_CFUNC_DEF("memory", 1, js_memory ),
 };
 
-
 static int js_test_init(JSContext *ctx, JSModuleDef *m){
     return JS_SetModuleExportList(ctx, m, js_test_funcs,
             countof(js_test_funcs));
@@ -59,9 +58,11 @@ static int js_test_init(JSContext *ctx, JSModuleDef *m){
 JSModuleDef *js_init_module_test(JSContext *ctx, const char *module_name)
 {
     JSModuleDef *m;
+    // 创建一个模块，包含这个模块有多少方法或者变量
     m = JS_NewCModule(ctx, module_name, js_test_init);
     if (!m)
         return NULL;
+    // 注册这个模块到 quickjs 的运行时。
     JS_AddModuleExportList(ctx, m, js_test_funcs, countof(js_test_funcs));
     return m;
 }

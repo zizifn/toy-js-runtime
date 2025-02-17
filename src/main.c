@@ -14,6 +14,8 @@ int main(int argc, char** argv)
 
     rt = JS_NewRuntime();
     ctx = JS_NewContext(rt);
+    // Initialize standard handlers, settimeout etc
+    js_std_init_handlers(rt);
 
     JS_SetModuleLoaderFunc(rt, NULL, js_module_loader, NULL);
     // add console
@@ -30,11 +32,14 @@ int main(int argc, char** argv)
     ret = JS_Eval(ctx, script_str, script_len, filename, JS_EVAL_TYPE_MODULE);
     if (JS_IsException(ret))
     {
-        printf("JS exception occured\n");
+        printf("JS exception occurred\n");
         js_std_dump_error(ctx);
         r = -1;
     }
+    // Run event loop to process any pending jobs (promises, etc)
+    js_free(ctx, script_str);
     JS_FreeValue(ctx, ret);
+    js_std_free_handlers(rt);
     JS_FreeContext(ctx);
     JS_FreeRuntime(rt);
     return r;
