@@ -5,9 +5,9 @@ project (toyjsruntime C)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -DDEBUG")
 
 
-set(SRC_FILES)
 # libs
 ## quickjs
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(QUICKJS_DIR ${CMAKE_SOURCE_DIR}/deps/quickjs)
 # 一定要把这个打开，要不然没有 QJS 的额外带的标准库
 set(BUILD_QJS_LIBC ON)
