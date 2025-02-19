@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "test.h"
 
 void get_memory_info() {
     FILE *file = fopen("/proc/meminfo", "r");
@@ -23,6 +24,8 @@ void get_memory_info() {
 }
 
 int main() {
-    get_memory_info();
+
+    JSContext *test = NULL;
+    // get_memory_info();
     return 0;
 }

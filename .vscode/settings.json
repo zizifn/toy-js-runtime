@@ -1,5 +1,14 @@
 {
     "files.associations": {
-        "quickjs.h": "c"
-    }
+        "quickjs.h": "c",
+        "array": "cpp",
+        "compare": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp"
+    },
+    "cmake.debugConfig": {
+        "args": ["../src/test.js"]
+      },
 }

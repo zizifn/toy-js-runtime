@@ -13,7 +13,12 @@ set(QUICKJS_DIR ${CMAKE_SOURCE_DIR}/deps/quickjs)
 set(BUILD_QJS_LIBC ON)
 add_subdirectory(${QUICKJS_DIR} ${CMAKE_BINARY_DIR}/quickjs)
 
+# Add libuv submodule
+set(LIBUV_DIR ${CMAKE_SOURCE_DIR}/deps/libuv)
+# Include libuv as a subdirectory
+add_subdirectory(${LIBUV_DIR} ${CMAKE_BINARY_DIR}/libuv)
+
 # 生成 toy js runtime 的执行文件
 add_executable(toyjsruntime ${CMAKE_SOURCE_DIR}/src/main.c)
 # link 相关 lib，这里用qjs，因为 deps/quickjs CMakeLists.txt 输出结果是 qjs
-target_link_libraries(toyjsruntime PRIVATE m qjs)
+target_link_libraries(toyjsruntime PRIVATE m qjs uv)
