@@ -1,4 +1,13 @@
-import { memory } from 'toyjsruntime:test'
 
+const ret = setTimeout(
+    () => {
+        console.log('hello world+++++++');
+    return '1111';
+    },
+    2000
+);
+console.log("result is ", ret);
 
-console.log(memory());
+clearTimeout(ret);
+
+console.log('end');
