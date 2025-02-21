@@ -3,8 +3,10 @@
 #include "quickjs-libc.h"
 #include "quickjs.h"
 #include "module_hello.c"
+#include "module_quickjs_ffi.h"
 #include "uv.h"
 #include "list.h"
+#include "./bundles/quickjs-ffi.c"
 
 typedef struct JSRuntimeAddinfo
 {
@@ -13,14 +15,14 @@ typedef struct JSRuntimeAddinfo
     int64_t next_timer_id;
 } JSRuntimeAddinfo;
 
-
 typedef struct JSIdleHandler
 {
     struct list_head link;
     uv_idle_t idle_handle;
 } JSIdleHandler;
 
-typedef struct {
+typedef struct
+{
     struct list_head link;
     uv_timer_t handle;
     int64_t timer_id;
@@ -66,7 +68,8 @@ static void js_free_libuv_timer(JSRuntime *rt, JSTimerInfo *info)
     js_free_rt(rt, info);
 }
 
-static void timer_cb(uv_timer_t *timer) {
+static void timer_cb(uv_timer_t *timer)
+{
     JSTimerInfo *info = timer->data;
     // 执行 js 函数
     JSValue ret = JS_Call(info->ctx, info->fn, JS_UNDEFINED, 0, NULL);
@@ -81,17 +84,17 @@ static void idle_cb(uv_idle_t *handle)
 }
 
 static JSValue js_setTimeout(JSContext *ctx, JSValueConst this_val,
-                            int argc, JSValueConst *argv)
+                             int argc, JSValueConst *argv)
 {
     printf("js_setTimeout------\n");
-    // 
-    if(argc < 2)
+    //
+    if (argc < 2)
         return JS_EXCEPTION;
     // setTimeout(fn, delay)
     // 第一个参数是一个js 函数
     JSValue fn = argv[0];
-    if(!JS_IsFunction(ctx, fn))
-    return JS_ThrowTypeError(ctx, "not a function");
+    if (!JS_IsFunction(ctx, fn))
+        return JS_ThrowTypeError(ctx, "not a function");
     // 第二个参数是一个数字
     int delay = JS_VALUE_GET_INT(argv[1]);
 
@@ -114,9 +117,9 @@ static JSValue js_setTimeout(JSContext *ctx, JSValueConst this_val,
 }
 
 static JSValue js_clearTimeout(JSContext *ctx, JSValueConst this_val,
-                            int argc, JSValueConst *argv)
+                               int argc, JSValueConst *argv)
 {
-    if(argc < 1)
+    if (argc < 1)
         return JS_EXCEPTION;
     // 第一个参数是一个数字
     int timer_id = JS_VALUE_GET_INT(argv[0]);
@@ -128,12 +131,12 @@ static JSValue js_clearTimeout(JSContext *ctx, JSValueConst this_val,
     list_for_each(el, &customData->timer_handlers)
     {
         info = list_entry(el, JSTimerInfo, link);
-        if(info->timer_id == timer_id)
+        if (info->timer_id == timer_id)
         {
             break;
         }
     }
-    if(info != NULL)
+    if (info != NULL)
     {
         uv_timer_stop(&info->handle);
         js_free_libuv_timer(rt, info);
@@ -158,6 +161,55 @@ static void js_add_custom_helpers(JSContext *ctx)
     JS_FreeValue(ctx, global_obj);
 }
 
+typedef struct
+{
+    const char *name;
+    const uint8_t *data;
+    uint32_t data_size;
+} builtin_js_t;
+
+// 定义一个内置模块的数组，都是用 quickjs 编译的 js 文件
+static builtin_js_t builtins[] = {
+    {"toyjsruntime:jsffi", qjsc_quickjs_ffi, qjsc_quickjs_ffi_size}};
+
+JSModuleDef *js_custom_module_loader(JSContext *ctx,
+                                     const char *module_name, void *opaque)
+{
+    builtin_js_t *item = NULL;
+    for (int i = 0; i < sizeof(builtins) / sizeof(builtin_js_t); i++)
+    {
+        if (strcmp(module_name, builtins[i].name) == 0)
+        {
+            item = &builtins[i];
+            break;
+        }
+    }
+    if (item != NULL)
+    {
+        // 加载 btyecode
+        JSValue obj = JS_ReadObject(ctx, item->data, item->data_size, JS_READ_OBJ_BYTECODE);
+        if (JS_IsException(obj))
+        {
+            JS_ThrowReferenceError(ctx, "Error loading module %s\n", module_name);
+            JS_FreeValue(ctx, obj);
+            return NULL;
+        }
+
+        if (JS_VALUE_GET_TAG(obj) != JS_TAG_MODULE)
+        {
+            JS_ThrowReferenceError(ctx, "loaded %s, butis not a modules\n", module_name);
+            JS_FreeValue(ctx, obj);
+            return NULL;
+        }
+        // 得到模块
+        JSModuleDef *m = JS_VALUE_GET_PTR(obj);
+        JS_FreeValue(ctx, obj);
+        return m;
+    }
+
+    return js_module_loader(ctx, module_name, opaque);
+}
+
 int main(int argc, char **argv)
 {
     // 初始化 libuv 的 check 和 idle handle
@@ -179,7 +231,7 @@ int main(int argc, char **argv)
 #pragma endregion
 
     // // Initialize standard handlers, settimeout etc
-    JS_SetModuleLoaderFunc(rt, NULL, js_module_loader, NULL);
+    JS_SetModuleLoaderFunc(rt, NULL, js_custom_module_loader, NULL);
     // add console
     js_std_add_helpers(ctx, argc, argv);
     // add custom helpers
@@ -187,6 +239,7 @@ int main(int argc, char **argv)
 
     // custom module
     js_init_module_test(ctx, "toyjsruntime:test");
+    js_init_module_ffi(ctx, "toyjsruntime:ffi");
 
     // libuv
     uv_check_init(uv_default_loop(), &check_handle);
