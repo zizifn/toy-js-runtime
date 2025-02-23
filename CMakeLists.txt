@@ -6,6 +6,9 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -DDEBUG")
 
 # Copy a file from source to destination
 file(COPY ${CMAKE_SOURCE_DIR}/src/example/libtest_lib.so DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/src/example/libwebviewd.so.0.12.0 DESTINATION ${CMAKE_BINARY_DIR})
+# file(COPY ${CMAKE_SOURCE_DIR}/src/example/libwebkitgtk-6.0.so DESTINATION ${CMAKE_BINARY_DIR})
+
 
 
 # file(GLOB MODULE_SRC_FILES 
@@ -29,8 +32,15 @@ set(LIBUV_DIR ${CMAKE_SOURCE_DIR}/deps/libuv)
 # Include libuv as a subdirectory
 add_subdirectory(${LIBUV_DIR} ${CMAKE_BINARY_DIR}/libuv)
 
+
+set(TOYJSRUNTIME_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/main.c
+    ${CMAKE_SOURCE_DIR}/src/module_quickjs_ffi.c
+    ${CMAKE_SOURCE_DIR}/src/module_fs.c
+
+)
 # 生成 toy js runtime 的执行文件
-add_executable(toyjsruntime ${CMAKE_SOURCE_DIR}/src/main.c ${CMAKE_SOURCE_DIR}/src/module_quickjs_ffi.c)
+add_executable(toyjsruntime ${TOYJSRUNTIME_SOURCES})
 # link 相关 lib，这里用qjs，因为 deps/quickjs CMakeLists.txt 输出结果是 qjs
 target_link_libraries(toyjsruntime PRIVATE m qjs uv ${FFI_LIB})
 

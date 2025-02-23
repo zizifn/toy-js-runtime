@@ -1,13 +1,19 @@
+import {readFile } from 'toyjsruntime:fs';
 
-const ret = setTimeout(
-    () => {
-        console.log('hello world+++++++');
-    return '1111';
-    },
-    2000
-);
-console.log("result is ", ret);
+console.log("---start");
 
-clearTimeout(ret);
+// const txt = readFile('./Makefile').then((data) => {
+//     console.log(data);
+// }
+// ).catch((err) => {
+//     console.error(err);
+// });
+// console.log('-------------------', txt);
 
-console.log('end');
+// const ret = await Promise.resolve('x555xxx');
+// console.log(ret);
+
+
+const text = await readFile('./Makefile');
+
+console.log("end", text);

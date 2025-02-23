@@ -6,9 +6,12 @@
         "functional": "cpp",
         "tuple": "cpp",
         "type_traits": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "module_fs.h": "c",
+        "list.h": "c",
+        "module_quickjs_ffi.h": "c"
     },
     "cmake.debugConfig": {
-        "args": ["../src/test.js"]
+        "args": ["../src/example/test.js"]
       },
 }

@@ -4,6 +4,7 @@
 #include "quickjs.h"
 #include "module_hello.c"
 #include "module_quickjs_ffi.h"
+#include "module_fs.h"
 #include "uv.h"
 #include "list.h"
 #include "./bundles/quickjs-ffi.c"
@@ -230,6 +231,9 @@ int main(int argc, char **argv)
     ctx = JS_NewContext(rt);
 #pragma endregion
 
+    // Initialize standard handlers
+    // js_std_init_handlers(rt);
+
     // // Initialize standard handlers, settimeout etc
     JS_SetModuleLoaderFunc(rt, NULL, js_custom_module_loader, NULL);
     // add console
@@ -240,6 +244,7 @@ int main(int argc, char **argv)
     // custom module
     js_init_module_test(ctx, "toyjsruntime:test");
     js_init_module_ffi(ctx, "toyjsruntime:ffi");
+    js_init_module_fs(ctx, "toyjsruntime:fs");
 
     // libuv
     uv_check_init(uv_default_loop(), &check_handle);
@@ -255,17 +260,36 @@ int main(int argc, char **argv)
     uint8_t *script_str;
     // 利用 C 语言的文件读取函数读取文件内容
     script_str = js_load_file(ctx, &script_len, filename);
+    if (!script_str)
+    {
+        printf("failed to load file %s\n", filename);
+        r = -1;
+        JS_FreeContext(ctx);
+        JS_FreeRuntime(rt);
+        return r;
+    }
     // 运行读取的 js 脚本
     ret = JS_Eval(ctx, script_str, script_len, "main", JS_EVAL_TYPE_MODULE);
-    ret = js_std_await(ctx, ret);
     if (JS_IsException(ret))
     {
         printf("JS exception occurred\n");
         js_std_dump_error(ctx);
         r = -1;
-    }
+    } 
+
+    // // Run the event loop until all jobs are done
+    // for(;;) {
+    //     JSContext *pctx;
+    //     int err = JS_ExecutePendingJob(JS_GetRuntime(ctx), &pctx);
+    //     if (err <= 0) {
+    //         if (err < 0)
+    //             js_std_dump_error(pctx);
+    //         break;
+    //     }
+    // }
 
     uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+
     // Run event loop to process any pending jobs (promises, etc)
     // js_std_loop(ctx);
     js_free(ctx, script_str);
