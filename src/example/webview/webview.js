@@ -30,45 +30,56 @@ const webview_set_size = new CFunction(webviewLib, 'webview_set_size', null, 'in
 
 const webview_set_html = new CFunction(webviewLib, 'webview_set_html', null, 'int', 'pointer', 'string').invoke;
 
+//WEBVIEW_API webview_error_t webview_navigate(webview_t w, const char *url);
+const webview_navigate = new CFunction(webviewLib, 'webview_navigate', null, 'int', 'pointer', 'string').invoke;
+
+// WEBVIEW_API webview_error_t webview_eval(webview_t w, const char *js);
+const webview_eval = new CFunction(webviewLib, 'webview_eval', null, 'int', 'pointer', 'string').invoke;
+
+// WEBVIEW_API webview_error_t webview_init(webview_t w, const char *js);
+const webview_init = new CFunction(webviewLib, 'webview_init', null, 'int', 'pointer', 'string').invoke;
 // webview_error_t webview_run(webview_t w);
 const webview_run = new CFunction(webviewLib, 'webview_run', null, 'int', 'pointer').invoke;
 const webview_destroy = new CFunction(webviewLib, 'webview_destroy', null, 'int', 'pointer').invoke;
+
 // console.log("----start---");
-// const w = webview_create(0, ffi.NULL);
+// const w = webview_create(1, ffi.NULL); // Changed debug parameter to 1
 // console.log("webview_create", w);
-// webview_set_title(w, "Basic Example");
+// webview_set_title(w, "Basic Example1111");
 // console.log('webview_set_title');
 // webview_set_size(w, 480, 320, 0);
 // console.log('webview_set_size');
-// webview_set_html(w, "Thanks for using webview!");
+// webview_set_html(w, `Thanks for using webview!`);
 // console.log('webview_set_html');
+
+// // Add a small delay before running
 // webview_run(w);
 // console.log('webview_run');
 // webview_destroy(w);
 // console.log('webview_destroy');
+
 
 class BrowserWindow {
     constructor({
         width = 480,
         height = 320,
     } = {}) {
-        this.w = webview_create(0, ffi.NULL);
+        this.w = webview_create(1, ffi.NULL);
         webview_set_size(this.w, width, height, 0);
         webview_set_title(this.w, "Basic Example");
     }
 
     async loadFile(file) {
-        console.log("loadFile", file);
         const html = await readFile(file);
-        console.log(html);
         webview_set_html(this.w, html);
-        webview_run(this.w);
+        console.log("after webview_set_html")
+        webview_run(this.w); // 应该跑在 thread 里面，不 block 主线程
         webview_destroy(this.w);
     }
-
 }
 
-const window = new BrowserWindow();
+const window = new BrowserWindow(
+);
 await window.loadFile('index.html');
 
 

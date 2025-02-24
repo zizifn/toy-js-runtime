@@ -6,9 +6,11 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0 -g -DDEBUG")
 
 # Copy a file from source to destination
 file(COPY ${CMAKE_SOURCE_DIR}/src/example/libtest_lib.so DESTINATION ${CMAKE_BINARY_DIR})
-file(COPY ${CMAKE_SOURCE_DIR}/src/example/libwebviewd.so.0.12.0 DESTINATION ${CMAKE_BINARY_DIR})
 # file(COPY ${CMAKE_SOURCE_DIR}/src/example/libwebkitgtk-6.0.so DESTINATION ${CMAKE_BINARY_DIR})
 
+# Copy all files from webview directory
+file(GLOB WEBVIEW_FILES "${CMAKE_SOURCE_DIR}/src/example/webview/*")
+file(COPY ${WEBVIEW_FILES} DESTINATION ${CMAKE_BINARY_DIR})
 
 
 # file(GLOB MODULE_SRC_FILES 

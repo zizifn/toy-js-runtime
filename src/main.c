@@ -40,9 +40,14 @@ static void check_cb(uv_check_t *handle)
     while (1)
     {
         err = JS_ExecutePendingJob(rt, &ctx1);
-        if (err <= 0)
+        if(err ==0){
+            break;
+        }
+        if (err < 0)
         {
             // if err < 0, an exception occurred
+            printf("JS exception occurred\n");
+            // js_std_dump_error(ctx1);
             break;
         }
     }
@@ -211,6 +216,39 @@ JSModuleDef *js_custom_module_loader(JSContext *ctx,
     return js_module_loader(ctx, module_name, opaque);
 }
 
+// static JSValue toy_js_std_await(JSContext *ctx, JSValue obj)
+// {
+//     JSValue ret;
+//     int state;
+
+//     for(;;) {
+//         state = JS_PromiseState(ctx, obj);
+//         if (state == JS_PROMISE_FULFILLED) {
+//             ret = JS_PromiseResult(ctx, obj);
+//             JS_FreeValue(ctx, obj);
+//             break;
+//         } else if (state == JS_PROMISE_REJECTED) {
+//             ret = JS_Throw(ctx, JS_PromiseResult(ctx, obj));
+//             JS_FreeValue(ctx, obj);
+//             break;
+//         } else if (state == JS_PROMISE_PENDING) {
+//             printf("promise pending\n");
+//             JSContext *ctx1;
+//             int err;
+//             err = JS_ExecutePendingJob(JS_GetRuntime(ctx), &ctx1);
+//             if (err < 0) {
+//                 js_std_dump_error(ctx1);
+//             }
+//         } else {
+//             /* not a promise */
+//             ret = obj;
+//             break;
+//         }
+//     }
+//     return ret;
+// }
+
+
 int main(int argc, char **argv)
 {
     // 初始化 libuv 的 check 和 idle handle
@@ -270,6 +308,12 @@ int main(int argc, char **argv)
     }
     // 运行读取的 js 脚本
     ret = JS_Eval(ctx, script_str, script_len, "main", JS_EVAL_TYPE_MODULE);
+    // if (!JS_IsException(ret))
+    // {
+    //     // js_module_set_import_meta(ctx, ret, 1, 1);
+    //     ret = JS_EvalFunction(ctx, ret);
+    // }
+    // ret = toy_js_std_await(ctx, ret);
     if (JS_IsException(ret))
     {
         printf("JS exception occurred\n");

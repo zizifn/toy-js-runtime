@@ -152,7 +152,7 @@ static JSValue js_readFile(JSContext *ctx, JSValueConst this_val,
     }
 
     fs_req->ctx = ctx;
-    fs_req->promise = JS_DupValue(ctx, promise);
+    // fs_req->promise = JS_DupValue(ctx, promise);
     fs_req->resolving_funcs[0] = resolving_funcs[0];
     fs_req->resolving_funcs[1] = resolving_funcs[1];
     fs_req->path = strdup(path);
